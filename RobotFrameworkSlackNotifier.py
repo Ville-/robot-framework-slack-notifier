@@ -27,11 +27,11 @@ class RobotFrameworkSlackNotifier:
         self.slack_message['icon_emoji'] = ":robot_face:"
 
         self.slack_message['attachments'] = [{}, {}, {}]
-        self._init_attachments(self.PASS_INDEX, 'Passed', 'good')
-        self._init_attachments(self.NON_CRITICAL_INDEX, 'Non-Critical', 'warning')
-        self._init_attachments(self.FAIL_INDEX, 'Failed', 'danger')
+        self._init_attachment(self.PASS_INDEX, 'Passed', 'good')
+        self._init_attachment(self.NON_CRITICAL_INDEX, 'Non-Critical', 'warning')
+        self._init_attachment(self.FAIL_INDEX, 'Failed', 'danger')
 
-    def _init_attachments(self, index, title, color):
+    def _init_attachment(self, index, title, color):
         self.slack_message['attachments'][index]['fields'] = []
         self.slack_message['attachments'][index]['title'] = title
         self.slack_message['attachments'][index]['color'] = color
