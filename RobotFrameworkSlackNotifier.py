@@ -42,11 +42,11 @@ class RobotFrameworkSlackNotifier:
         elif result['critical'] == 'no':
             test_result = self.slack_message['attachments'][self.NON_CRITICAL_INDEX]
             if not 'fields' in test_result:
-                self._init_attachment(self.NON_CRITICAL_INDEX, 'Passed', 'good')
+                self._init_attachment(self.NON_CRITICAL_INDEX, 'Not Critical', 'warning')
         else:
             test_result = self.slack_message['attachments'][self.FAIL_INDEX]
             if not 'fields' in test_result:
-                self._init_attachment(self.FAIL_INDEX, 'Passed', 'good')
+                self._init_attachment(self.FAIL_INDEX, 'Failed', 'danger')
 
         test_result['fields'].append({
             "title": name,
