@@ -1,4 +1,4 @@
-# robot-framework-slack-notifier
+# Robot Framework Slack Notifier
 Robot Framework listener which sends test results to Slack
 
 ## Basic Usage
