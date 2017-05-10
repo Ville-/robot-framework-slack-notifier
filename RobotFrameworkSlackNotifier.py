@@ -45,7 +45,7 @@ class RobotFrameworkSlackNotifier:
                 self._init_attachment(self.NON_CRITICAL_INDEX, 'Passed', 'good')
         else:
             test_result = self.slack_message['attachments'][self.FAIL_INDEX]
-            if 'fields' in test_result:
+            if not 'fields' in test_result:
                 self._init_attachment(self.FAIL_INDEX, 'Passed', 'good')
 
         test_result['fields'].append({
