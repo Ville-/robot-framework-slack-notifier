@@ -4,64 +4,59 @@ import re
 
 class RobotFrameworkSlackNotifier:
     ROBOT_LISTENER_API_VERSION = 2
-    global PASS_INDEX, NON_CRITICAL_INDEX, FAIL_INDEX, SLACK_URL_ROOT
 
     SLACK_URL_ROOT = "https://hooks.slack.com/services/"
-    
+
     PASS_INDEX = 0;
     NON_CRITICAL_INDEX = 1;
     FAIL_INDEX = 2;
 
-    def __init__(self, slack_id):
-        self._init_result_object()
+    def __init__(self, slack_id, channel='#general', show_documentation=True):
+        self.url = self.SLACK_URL_ROOT + slack_id
+        self.show_documentation = show_documentation
+        self.channel = channel
 
-        self.url = SLACK_URL_ROOT + slack_id
+        self._init_slack_message()
 
-    def _init_result_object(self):
-        self.results = {}
-        self.results['unfurl_links'] = True
-        self.results['mrkdwn'] = True
-        self.results['channel'] = "#general"
-        self.results['username'] = "Robot Framework Notifier"
-        self.results['icon_emoji'] = ":robot_face:"
-        self.results['attachments'] = [{}, {}, {}]
-        self.results['attachments'][PASS_INDEX]['fields'] = []
-        self.results['attachments'][NON_CRITICAL_INDEX]['fields'] = []
-        self.results['attachments'][FAIL_INDEX]['fields'] = []
-        self.results['attachments'][PASS_INDEX]['color'] = "good"
-        self.results['attachments'][NON_CRITICAL_INDEX]['color'] = "warning"
-        self.results['attachments'][FAIL_INDEX]['color'] = "danger"
-        self.results['attachments'][PASS_INDEX]['title'] = "Passed"
-        self.results['attachments'][NON_CRITICAL_INDEX]['title'] = "Non-critical"
-        self.results['attachments'][FAIL_INDEX]['title'] = "Failed"
+    def _init_slack_message(self):
+        self.slack_message = {}
+        self.slack_message['unfurl_links'] = False
+        self.slack_message['mrkdwn'] = True
+        self.slack_message['channel'] = self.channel
+        self.slack_message['username'] = "Robot Framework Notifier"
+        self.slack_message['icon_emoji'] = ":robot_face:"
 
-    def _get_test_text(self, result):
-        url = re.search("(?P<url>https?://[^\s]+)", result['doc']).group("url") if result['doc'] else ""
+        self.slack_message['attachments'] = [{}, {}, {}]
+        self._init_attachments(self.PASS_INDEX, 'Passed', 'good')
+        self._init_attachments(self.NON_CRITICAL_INDEX, 'Non-Critical', 'warning')
+        self._init_attachments(self.FAIL_INDEX, 'Failed', 'danger')
 
-        if url != "":
-            text = "<" + url + "|" + result['message'] + ">"
-        else:
-            text = result['message']
-
-        return text
+    def _init_attachments(self, index, title, color):
+        self.slack_message['attachments'][index]['fields'] = []
+        self.slack_message['attachments'][index]['title'] = title
+        self.slack_message['attachments'][index]['color'] = color
 
     def end_test(self, name, result):
         url = ''
 
         if result['status'] == 'PASS':
-            test_result = self.results['attachments'][PASS_INDEX]
+            test_result = self.slack_message['attachments'][self.PASS_INDEX]
         elif result['critical'] == 'no':
-            test_result = self.results['attachments'][NON_CRITICAL_INDEX]
+            test_result = self.slack_message['attachments'][self.NON_CRITICAL_INDEX]
         else:
-            test_result = self.results['attachments'][FAIL_INDEX]
+            test_result = self.slack_message['attachments'][self.FAIL_INDEX]
 
         test_result['fields'].append({
             "title": name,
-            "value": self._get_test_text(result)
+            "value": result['message']
         })
 
     def end_suite(self,  name, result):
-        self.results['text'] = "*" + name + "*" + "\n" + result['statistics']
-        res = requests.post(self.url, data=json.dumps(self.results))
+        self.slack_message['text'] = "*" + name + "*" + "\n"
+        self.slack_message['text'] += result['statistics']
+        if self.show_documentation:
+            self.slack_message['text'] +=  "\n" + result['doc']
+
+        requests.post(self.url, data=json.dumps(self.slack_message))
 
 
